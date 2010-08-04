@@ -110,6 +110,7 @@ INIT {
 }
 
 END {
+    print "\n";
     print "# BEGIN stats from Devel::EndStats\n";
 
     printf "# Program runtime duration (s): %d\n", (time() - $^T);
