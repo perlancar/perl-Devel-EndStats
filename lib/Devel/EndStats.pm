@@ -110,10 +110,10 @@ INIT {
 }
 
 END {
-    print "\n";
-    print "# BEGIN stats from Devel::EndStats\n";
+    print STDERR "\n";
+    print STDERR "# BEGIN stats from Devel::EndStats\n";
 
-    printf "# Program runtime duration (s): %d\n", (time() - $^T);
+    print STDERR sprintf "# Program runtime duration (s): %d\n", (time() - $^T);
 
     my $modules = 0;
     my $lines = 0;
@@ -127,15 +127,15 @@ END {
         open F, $INC{$im} or next;
         while (<F>) { $lines++; $lines{$im}++ }
     }
-    printf "# Total number of module files loaded: %d\n", $modules;
-    printf "# Total number of modules lines loaded: %d\n", $lines;
+    print STDERR sprintf "# Total number of module files loaded: %d\n", $modules;
+    print STDERR sprintf "# Total number of modules lines loaded: %d\n", $lines;
     if ($opts{verbose}) {
         for my $im (sort {$lines{$b} <=> $lines{$a}} keys %lines) {
-            printf "#   Lines from %s: %d\n", _inc2modname($im), $lines{$im};
+            print STDERR sprintf "#   Lines from %s: %d\n", _inc2modname($im), $lines{$im};
         }
     }
 
-    print "# END stats\n";
+    print STDERR "# END stats\n";
 }
 
 =head1 FAQ
