@@ -1,5 +1,12 @@
 Revision history for Devel-EndStats
 
+0.03    2010-08-04
+
+        Change: print stats to STDERR instead of STDOUT.
+
+        Fix failing tests.
+
+
 0.02    2010-07-28
 
         Require Perl 5.10.
