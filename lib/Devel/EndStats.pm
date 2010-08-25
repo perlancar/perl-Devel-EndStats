@@ -41,9 +41,11 @@ Some notes/caveats:
 END blocks declared after Devel::EndStats' will be executed after it, so in that
 case it's ideal to load Devel::EndStats as the last module.
 
-In modules statistics, Devel::EndStats excludes itself and the modules it uses.
-Devel::EndStats tries to check whether those modules are actually loaded/used by
-your program instead of just by Devel::EndStats and if so, will not exclude them.
+In modules statistics, unless instructed otherwise, Devel::EndStats excludes
+itself and the modules it uses. Devel::EndStats tries to check whether those
+modules are actually loaded/used by your program instead of just by
+Devel::EndStats and if so, will not exclude them. See C<exclude_endstats_modules>
+in L</OPTIONS> for information on how to not do the excluding.
 
 =cut
 
