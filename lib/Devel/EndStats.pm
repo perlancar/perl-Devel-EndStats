@@ -7,6 +7,7 @@ package Devel::EndStats;
  % perl -MDevel::EndStats script.pl
 
  ##### sample output #####
+ <normal script output, if any...>
 
  # BEGIN stats from Devel::EndStats
  # Program runtime duration (s): 2
@@ -15,6 +16,7 @@ package Devel::EndStats;
  # END stats
 
  ##### sample output (with verbose=1, some cut) #####
+ <normal script output, if any...>
 
  # BEGIN stats from Devel::EndStats
  # Program runtime duration (s): 2
