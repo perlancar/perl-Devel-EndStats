@@ -6,6 +6,28 @@ package Devel::EndStats;
  # from the command line
  % perl -MDevel::EndStats script.pl
 
+ ##### sample output #####
+
+ # BEGIN stats from Devel::EndStats
+ # Program runtime duration (s): 2
+ # Total number of module files loaded: 132
+ # Total number of modules lines loaded: 48772
+ # END stats
+
+ ##### sample output (with verbose=1, some cut) #####
+
+ # BEGIN stats from Devel::EndStats
+ # Program runtime duration (s): 2
+ # Total number of module files loaded: 132
+ # Total number of modules lines loaded: 48772
+ #   Lines from Class::MOP::Class: 1733
+ #   Lines from overload: 1499
+ #   Lines from Moose::Util::TypeConstraints: 1390
+ #   Lines from File::Find: 1349
+ #   Lines from Data::Dumper: 1306
+ ...
+ # END stats
+
 =head1 DESCRIPTION
 
 Devel::EndStats runs in the END block, displaying various statistics about your
@@ -156,11 +178,17 @@ Sure, if it's useful. As they say, (comments|patches) are welcome.
 =head1 TODO
 
 * Stat: memory usage.
+
 * Subsecond program duration.
+
 * Stat: system/user time.
+
 * Stat: number of open files (sockets).
+
 * Stat: number of child processes.
+
 * Stat: number of XS vs PP modules.
+
 * Feature: remember last run's stats, compare with current run.
 
 =cut
