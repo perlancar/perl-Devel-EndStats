@@ -11,8 +11,8 @@ package Devel::EndStats;
 
  # BEGIN stats from Devel::EndStats
  # Program runtime duration (s): 2
- # Total number of module files loaded: 132
- # Total number of modules lines loaded: 48772
+ # Total number of required files loaded: 132
+ # Total number of required lines loaded: 48772
  # END stats
 
  ##### sample output (with verbose=1, some cut) #####
@@ -20,8 +20,8 @@ package Devel::EndStats;
 
  # BEGIN stats from Devel::EndStats
  # Program runtime duration (s): 2
- # Total number of module files loaded: 132
- # Total number of modules lines loaded: 48772
+ # Total number of required files loaded: 132
+ # Total number of required lines loaded: 48772
  #   Lines from Class::MOP::Class: 1733
  #   Lines from overload: 1499
  #   Lines from Moose::Util::TypeConstraints: 1390
@@ -33,45 +33,31 @@ package Devel::EndStats;
 =head1 DESCRIPTION
 
 Devel::EndStats runs in the END block, displaying various statistics about your
-program, such as: how many seconds the program ran, how many module files and
-total number of lines loaded (by inspecting %INC), etc.
+program, such as:
+
+=over 4
+
+=item * how many seconds the program ran;
+
+=item * how many required files and total number of lines loaded (from %INC);
+
+=item * etc.
+
+=back
 
 Some notes/caveats:
 
-END blocks declared after Devel::EndStats' will be executed after it, so in that
-case it's ideal to load Devel::EndStats as the last module.
-
-In modules statistics, unless instructed otherwise, Devel::EndStats excludes
-itself and the modules it uses. Devel::EndStats tries to check whether those
-modules are actually loaded/used by your program instead of just by
-Devel::EndStats and if so, will not exclude them. See C<exclude_endstats_modules>
-in L</OPTIONS> for information on how to not do the excluding.
+Devel::EndStats should be loaded before other modules.
 
 =cut
 
-use 5.010;
+use strict;
+use warnings;
 
-sub _inc2modname {
-    local $_ = shift;
-    s!/!::!g;
-    s/\.pm$//;
-    $_;
-}
-
-sub _mod2incname {
-    local $_ = shift;
-    s!::!/!g;
-    "$_.pm";
-}
-
-my @my_modules = qw(
-               );
-
-my %excluded_modules;
+my %excluded;
 
 my %opts = (
-    verbose => 0,
-    exclude_endstats_modules => 1,
+    verbose      => 0,
 );
 
 =head1 OPTIONS
@@ -79,7 +65,7 @@ my %opts = (
 Some options are accepted. They can be passed via the B<use> statement:
 
  # from the command line
- % perl -MDevel::EndStats=verbose,1 script.pl
+ % pZerl -MDevel::EndStats=verbose,1 script.pl
 
  # from script
  use Devel::EndStats verbose=>1;
@@ -94,11 +80,6 @@ or via the DEVELENDSTATS_OPTS environment variable:
 
 Can also be set via VERBOSE environment variable. If set to true, display more
 statistics (like per-module statistics). Default is 0.
-
-=item * exclude_endstats_modules => BOOL
-
-If set to true, exclude Devel::EndStats itself and the modules it uses from the
-statistics. Default is 1.
 
 =back
 
@@ -116,22 +97,14 @@ sub import {
 }
 
 INIT {
-    for (qw(feature Devel::EndStats)) {
-        $excluded_modules{ _mod2incname($_) }++
-            if $opts{exclude_endstats_modules};
-    }
-
-    # load our modules and exclude it from stats
-    for my $m (@my_modules) {
-        my $im = _mod2incname($m);
-        next if $INC{$im};
-        my %INC0 = %INC;
-        require $im;
-        if ($opts{exclude_endstats_modules}) {
-            for (keys %INC) {
-                $excluded_modules{$_}++ unless $INC0{$_};
-            }
-        }
+    # exclude modules which we use ourselves
+    for (
+        "strict.pm",
+        "Devel/EndStats.pm",
+        "warnings.pm",
+        #"Time/HiRes.pm"
+    ) {
+        $excluded{$_}++;
     }
 }
 
@@ -139,25 +112,32 @@ END {
     print STDERR "\n";
     print STDERR "# BEGIN stats from Devel::EndStats\n";
 
-    print STDERR sprintf "# Program runtime duration (s): %d\n", (time() - $^T);
+    print STDERR sprintf "# Program runtime duration (s): %.3fs\n",
+        (time() - $^T);
 
-    my $modules = 0;
+    my $files = 0;
     my $lines = 0;
     my %lines;
     local *F;
-    for my $im (keys %INC) {
-        next if $excluded_modules{$im};
-        $modules++;
-        $lines{$im} = 0;
-        next unless $INC{$im}; # undefined in some cases
-        open F, $INC{$im} or next;
-        while (<F>) { $lines++; $lines{$im}++ }
+    for my $r (keys %INC) {
+        next if $excluded{$r};
+        $files++;
+        $lines{$r} = 0;
+        next unless $INC{$r}; # undefined in some cases
+        open F, $INC{$r} or do {
+            warn "Devel::EndStats: Can't open $INC{$r}, skipped\n";
+            next;
+        };
+        while (<F>) { $lines++; $lines{$r}++ }
     }
-    print STDERR sprintf "# Total number of module files loaded: %d\n", $modules;
-    print STDERR sprintf "# Total number of modules lines loaded: %d\n", $lines;
+    print STDERR sprintf "# Total number of required files loaded: %d\n",
+        $files;
+    print STDERR sprintf "# Total number of required lines loaded: %d\n",
+        $lines;
     if ($opts{verbose}) {
-        for my $im (sort {$lines{$b} <=> $lines{$a}} keys %lines) {
-            print STDERR sprintf "#   Lines from %s: %d\n", _inc2modname($im), $lines{$im};
+        for my $r (sort {$lines{$b} <=> $lines{$a}} keys %lines) {
+            print STDERR sprintf "#   Lines from %s: %d\n",
+                $r, $lines{$r};
         }
     }
 
@@ -183,13 +163,15 @@ Sure, if it's useful. As they say, (comments|patches) are welcome.
 
 * Stat: memory usage.
 
-* Subsecond program duration.
+* Subsecond program duration (and subsecond per each require, if possible).
 
 * Stat: system/user time.
 
 * Stat: number of open files (sockets).
 
 * Stat: number of child processes.
+
+* Stat: number of actual code lines (vs blanks, data, comment, POD)
 
 * Stat: number of XS vs PP modules.
 
