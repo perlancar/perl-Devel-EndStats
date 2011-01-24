@@ -119,6 +119,7 @@ sub import {
     @start_time = gettimeofday();
 }
 
+my $begin_success;
 INIT {
     # exclude modules which we use ourselves
     for (
@@ -140,6 +141,7 @@ INIT {
     ) {
         $excluded{$_}++;
     }
+    $begin_success++;
 }
 
 our $stats;
@@ -149,31 +151,39 @@ END {
     $stats  = "\n";
     $stats .= "# BEGIN stats from Devel::EndStats\n";
 
-    $stats .= sprintf "# Program runtime duration (s): %.3fs\n", $secs;
+    if ($begin_success) {
 
-    my $files = 0;
-    my $lines = 0;
-    my %lines;
-    local *F;
-    for my $r (keys %INC) {
-        next if $excluded{$r};
-        $files++;
-        $lines{$r} = 0;
-        next unless $INC{$r}; # undefined in some cases
-        open F, $INC{$r} or do {
-            warn "Devel::EndStats: Can't open $INC{$r}, skipped\n";
-            next;
-        };
-        while (<F>) { $lines++; $lines{$r}++ }
-    }
-    $stats .= sprintf "# Total number of required files loaded: %d\n",
-        $files;
-    $stats .= sprintf "# Total number of required lines loaded: %d\n",
-        $lines;
-    if ($opts{verbose}) {
-        for my $r (sort {$lines{$b} <=> $lines{$a}} keys %lines) {
-            $stats .= sprintf "#   Lines from %s: %d\n", $r, $lines{$r};
+        $stats .= sprintf "# Program runtime duration (s): %.3fs\n", $secs;
+
+        my $files = 0;
+        my $lines = 0;
+        my %lines;
+        local *F;
+        for my $r (keys %INC) {
+            next if $excluded{$r};
+            $files++;
+            $lines{$r} = 0;
+            next unless $INC{$r}; # undefined in some cases
+            open F, $INC{$r} or do {
+                warn "Devel::EndStats: Can't open $INC{$r}, skipped\n";
+                next;
+            };
+            while (<F>) { $lines++; $lines{$r}++ }
         }
+        $stats .= sprintf "# Total number of required files loaded: %d\n",
+            $files;
+        $stats .= sprintf "# Total number of required lines loaded: %d\n",
+            $lines;
+        if ($opts{verbose}) {
+            for my $r (sort {$lines{$b} <=> $lines{$a}} keys %lines) {
+                $stats .= sprintf "#   Lines from %s: %d\n", $r, $lines{$r};
+            }
+        }
+
+    } else {
+
+        $stats .= "# BEGIN phase didn't succeed?\n";
+
     }
 
     $stats .= "# END stats\n";
