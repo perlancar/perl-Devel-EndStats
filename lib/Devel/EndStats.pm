@@ -53,6 +53,7 @@ Devel::EndStats should be loaded before other modules.
 
 use strict;
 use warnings;
+use Time::HiRes qw(gettimeofday tv_interval);
 
 my %excluded;
 
@@ -85,6 +86,25 @@ statistics (like per-module statistics). Default is 0.
 
 =cut
 
+sub handler {
+    my ($coderef, $filename) = @_;
+    my $load = 1;
+
+    # XXX intercept lib.pm so we still stay as the first item in @INC
+    if ($filename eq 'lib') {
+        $load = 0;
+        # ...
+    }
+
+    # search and load file, based on rest of @INC
+
+    #print "DEBUG: Loading $filename ...\n";
+    #return (undef, sub {return 0});
+
+    #return (\*FH, );
+}
+
+my @start_time;
 sub import {
     my ($class, %args) = @_;
     $opts{verbose} = $ENV{VERBOSE} if defined($ENV{VERBOSE});
@@ -94,6 +114,8 @@ sub import {
         }
     }
     $opts{$_} = $args{$_} for keys %args;
+    #unshift @INC, \&handler;
+    @start_time = gettimeofday();
 }
 
 INIT {
@@ -102,18 +124,30 @@ INIT {
         "strict.pm",
         "Devel/EndStats.pm",
         "warnings.pm",
-        #"Time/HiRes.pm"
+        "warnings/register.pm",
+
+        # from Time::HiRes
+        "AutoLoader.pm",
+        "Config_git.pl",
+        "Config_heavy.pl",
+        "Config.pm",
+        "DynaLoader.pm",
+        "Exporter/Heavy.pm",
+        "Exporter.pm",
+        "Time/HiRes.pm",
+        "vars.pm",
     ) {
         $excluded{$_}++;
     }
 }
 
 END {
+    my $secs = tv_interval(\@start_time);
+
     print STDERR "\n";
     print STDERR "# BEGIN stats from Devel::EndStats\n";
 
-    print STDERR sprintf "# Program runtime duration (s): %.3fs\n",
-        (time() - $^T);
+    print STDERR sprintf "# Program runtime duration (s): %.3fs\n", $secs;
 
     my $files = 0;
     my $lines = 0;
@@ -163,7 +197,7 @@ Sure, if it's useful. As they say, (comments|patches) are welcome.
 
 * Stat: memory usage.
 
-* Subsecond program duration (and subsecond per each require, if possible).
+* Time each require.
 
 * Stat: system/user time.
 
