@@ -57,8 +57,9 @@ use Time::HiRes qw(gettimeofday tv_interval);
 
 my %excluded;
 
-my %opts = (
+our %opts = (
     verbose      => 0,
+    _quiet       => 0,
 );
 
 =head1 OPTIONS
@@ -141,13 +142,14 @@ INIT {
     }
 }
 
+our $stats;
 END {
     my $secs = tv_interval(\@start_time);
 
-    print STDERR "\n";
-    print STDERR "# BEGIN stats from Devel::EndStats\n";
+    $stats  = "\n";
+    $stats .= "# BEGIN stats from Devel::EndStats\n";
 
-    print STDERR sprintf "# Program runtime duration (s): %.3fs\n", $secs;
+    $stats .= sprintf "# Program runtime duration (s): %.3fs\n", $secs;
 
     my $files = 0;
     my $lines = 0;
@@ -164,18 +166,18 @@ END {
         };
         while (<F>) { $lines++; $lines{$r}++ }
     }
-    print STDERR sprintf "# Total number of required files loaded: %d\n",
+    $stats .= sprintf "# Total number of required files loaded: %d\n",
         $files;
-    print STDERR sprintf "# Total number of required lines loaded: %d\n",
+    $stats .= sprintf "# Total number of required lines loaded: %d\n",
         $lines;
     if ($opts{verbose}) {
         for my $r (sort {$lines{$b} <=> $lines{$a}} keys %lines) {
-            print STDERR sprintf "#   Lines from %s: %d\n",
-                $r, $lines{$r};
+            $stats .= sprintf "#   Lines from %s: %d\n", $r, $lines{$r};
         }
     }
 
-    print STDERR "# END stats\n";
+    $stats .= "# END stats\n";
+    print STDERR $stats unless $opts{_quiet};
 }
 
 =head1 FAQ
