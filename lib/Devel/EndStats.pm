@@ -10,7 +10,7 @@ package Devel::EndStats;
  <normal script output, if any...>
 
  # BEGIN stats from Devel::EndStats
- # Program runtime duration (s): 2
+ # Program runtime duration: 0.055s
  # Total number of required files loaded: 132
  # Total number of required lines loaded: 48772
  # END stats
@@ -19,14 +19,14 @@ package Devel::EndStats;
  <normal script output, if any...>
 
  # BEGIN stats from Devel::EndStats
- # Program runtime duration (s): 2
+ # Program runtime duration: 0.055s
  # Total number of required files loaded: 132
  # Total number of required lines loaded: 48772
- #   Lines from Class::MOP::Class: 1733
- #   Lines from overload: 1499
- #   Lines from Moose::Util::TypeConstraints: 1390
- #   Lines from File::Find: 1349
- #   Lines from Data::Dumper: 1306
+ #   Lines from Class/MOP/Class.pm: 1733
+ #   Lines from overload.pm: 1499
+ #   Lines from Moose/Util/TypeConstraints.pm: 1390
+ #   Lines from File/Find.pm: 1349
+ #   Lines from Data/Dumper.pm: 1306
  ...
  # END stats
 
@@ -159,7 +159,7 @@ END {
 
     if ($begin_success) {
 
-        $stats .= sprintf "# Program runtime duration (s): %.3fs\n", $secs;
+        $stats .= sprintf "# Program runtime duration: %.3fs\n", $secs;
 
         my $files = 0;
         my $lines = 0;
