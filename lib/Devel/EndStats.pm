@@ -85,6 +85,8 @@ statistics (like per-module statistics). Default is 0.
 
 =back
 
+=for Pod::Coverage handler
+
 =cut
 
 sub handler {
@@ -120,28 +122,32 @@ sub import {
 }
 
 my $begin_success;
-INIT {
-    # exclude modules which we use ourselves
-    for (
-        "strict.pm",
-        "Devel/EndStats.pm",
-        "warnings.pm",
-        "warnings/register.pm",
+{
+    # shut up warning about too late to run INIT block
+    no warnings;
+    INIT {
+        # exclude modules which we use ourselves
+        for (
+            "strict.pm",
+            "Devel/EndStats.pm",
+            "warnings.pm",
+            "warnings/register.pm",
 
-        # from Time::HiRes
-        "AutoLoader.pm",
-        "Config_git.pl",
-        "Config_heavy.pl",
-        "Config.pm",
-        "DynaLoader.pm",
-        "Exporter/Heavy.pm",
-        "Exporter.pm",
-        "Time/HiRes.pm",
-        "vars.pm",
-    ) {
-        $excluded{$_}++;
+            # from Time::HiRes
+            "AutoLoader.pm",
+            "Config_git.pl",
+            "Config_heavy.pl",
+            "Config.pm",
+            "DynaLoader.pm",
+            "Exporter/Heavy.pm",
+            "Exporter.pm",
+            "Time/HiRes.pm",
+            "vars.pm",
+        ) {
+            $excluded{$_}++;
+        }
+        $begin_success++;
     }
-    $begin_success++;
 }
 
 our $stats;
