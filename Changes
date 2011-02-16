@@ -1,6 +1,17 @@
 Revision history for Devel-EndStats
 
-0.04     2010-08-26
+0.05    2011-02-16
+
+        Use Time::HiRes for more precision.
+
+        Don't show stats if BEGIN phase failed.
+
+        No longer require Perl 5.10.
+
+	Some formatting tweaks.
+
+
+0.04    2010-08-26
 
         Some doc work: sample output, formatting, wording.
 
