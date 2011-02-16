@@ -152,7 +152,7 @@ my $begin_success;
 
 our $stats;
 END {
-    my $secs = tv_interval(\@start_time);
+    my $secs = @start_time ? tv_interval(\@start_time) : (time()-$^T);
 
     $stats  = "\n";
     $stats .= "# BEGIN stats from Devel::EndStats\n";
