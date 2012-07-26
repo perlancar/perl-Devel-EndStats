@@ -32,7 +32,7 @@ sub _inc_handler {
     #return (\*FH, );
 }
 
-my @start_time;
+my $start_time;
 sub import {
     my ($class, %args) = @_;
     $opts{verbose} = $ENV{VERBOSE} if defined($ENV{VERBOSE});
@@ -43,7 +43,7 @@ sub import {
     }
     $opts{$_} = $args{$_} for keys %args;
     #unshift @INC, \&_inc_handler;
-    @start_time = gettimeofday();
+    $start_time = [gettimeofday()];
 }
 
 my $begin_success;
@@ -77,7 +77,7 @@ my $begin_success;
 
 our $stats;
 END {
-    my $secs = @start_time ? tv_interval(\@start_time) : (time()-$^T);
+    my $secs = $start_time ? tv_interval($start_time) : (time()-$^T);
 
     $stats  = "\n";
     $stats .= "# BEGIN stats from Devel::EndStats\n";
