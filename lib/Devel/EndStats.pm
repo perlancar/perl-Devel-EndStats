@@ -1,55 +1,4 @@
 package Devel::EndStats;
-# ABSTRACT: Show various statistics at the end of program run
-
-=head1 SYNOPSIS
-
- # from the command line
- % perl -MDevel::EndStats script.pl
-
- ##### sample output #####
- <normal script output, if any...>
-
- # BEGIN stats from Devel::EndStats
- # Program runtime duration: 0.055s
- # Total number of required files loaded: 132
- # Total number of required lines loaded: 48772
- # END stats
-
- ##### sample output (with verbose=1, some cut) #####
- <normal script output, if any...>
-
- # BEGIN stats from Devel::EndStats
- # Program runtime duration: 0.055s
- # Total number of required files loaded: 132
- # Total number of required lines loaded: 48772
- #   Lines from Class/MOP/Class.pm: 1733
- #   Lines from overload.pm: 1499
- #   Lines from Moose/Util/TypeConstraints.pm: 1390
- #   Lines from File/Find.pm: 1349
- #   Lines from Data/Dumper.pm: 1306
- ...
- # END stats
-
-=head1 DESCRIPTION
-
-Devel::EndStats runs in the END block, displaying various statistics about your
-program, such as:
-
-=over 4
-
-=item * how many seconds the program ran;
-
-=item * how many required files and total number of lines loaded (from %INC);
-
-=item * etc.
-
-=back
-
-Some notes/caveats:
-
-Devel::EndStats should be loaded before other modules.
-
-=cut
 
 use strict;
 use warnings;
@@ -61,33 +10,6 @@ our %opts = (
     verbose      => 0,
     _quiet       => 0,
 );
-
-=head1 OPTIONS
-
-Some options are accepted. They can be passed via the B<use> statement:
-
- # from the command line
- % pZerl -MDevel::EndStats=verbose,1 script.pl
-
- # from script
- use Devel::EndStats verbose=>1;
-
-or via the DEVELENDSTATS_OPTS environment variable:
-
- % DEVELENDSTATS_OPTS='verbose=1' perl -MDevel::EndStats script.pl
-
-=over 4
-
-=item * verbose => BOOL
-
-Can also be set via VERBOSE environment variable. If set to true, display more
-statistics (like per-module statistics). Default is 0.
-
-=back
-
-=for Pod::Coverage handler
-
-=cut
 
 sub handler {
     my ($coderef, $filename) = @_;
@@ -195,6 +117,85 @@ END {
     $stats .= "# END stats\n";
     print STDERR $stats unless $opts{_quiet};
 }
+
+1;
+# ABSTRACT: Show various statistics at the end of program run
+
+=for Pod::Coverage handler
+
+=head1 SYNOPSIS
+
+ # from the command line
+ % perl -MDevel::EndStats script.pl
+
+ ##### sample output #####
+ <normal script output, if any...>
+
+ # BEGIN stats from Devel::EndStats
+ # Program runtime duration: 0.055s
+ # Total number of required files loaded: 132
+ # Total number of required lines loaded: 48772
+ # END stats
+
+ ##### sample output (with verbose=1, some cut) #####
+ <normal script output, if any...>
+
+ # BEGIN stats from Devel::EndStats
+ # Program runtime duration: 0.055s
+ # Total number of required files loaded: 132
+ # Total number of required lines loaded: 48772
+ #   Lines from Class/MOP/Class.pm: 1733
+ #   Lines from overload.pm: 1499
+ #   Lines from Moose/Util/TypeConstraints.pm: 1390
+ #   Lines from File/Find.pm: 1349
+ #   Lines from Data/Dumper.pm: 1306
+ ...
+ # END stats
+
+
+=head1 DESCRIPTION
+
+Devel::EndStats runs in the END block, displaying various statistics about your
+program, such as:
+
+=over 4
+
+=item * how many seconds the program ran;
+
+=item * how many required files and total number of lines loaded (from %INC);
+
+=item * etc.
+
+=back
+
+Some notes/caveats:
+
+Devel::EndStats should be loaded before other modules.
+
+
+=head1 OPTIONS
+
+Some options are accepted. They can be passed via the B<use> statement:
+
+ # from the command line
+ % pZerl -MDevel::EndStats=verbose,1 script.pl
+
+ # from script
+ use Devel::EndStats verbose=>1;
+
+or via the DEVELENDSTATS_OPTS environment variable:
+
+ % DEVELENDSTATS_OPTS='verbose=1' perl -MDevel::EndStats script.pl
+
+=over 4
+
+=item * verbose => BOOL
+
+Can also be set via VERBOSE environment variable. If set to true, display more
+statistics (like per-module statistics). Default is 0.
+
+=back
+
 
 =head1 FAQ
 
