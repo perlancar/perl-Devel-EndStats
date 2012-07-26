@@ -149,7 +149,7 @@ END {
             my $s = $opts{sort};
             my $sortsub;
             if ($s eq 'lines') {
-                $sortsub = sub {$inc_info{$b}{$s} <=> $inc_info{$a}{$s}};
+                $sortsub = sub {($inc_info{$b}{$s}||0) <=> ($inc_info{$a}{$s}||0)};
             } elsif ($s eq 'time') {
                 $sortsub = sub {$inc_info{$b}{$s} <=> $inc_info{$a}{$s}};
             } elsif ($s eq 'order') {
