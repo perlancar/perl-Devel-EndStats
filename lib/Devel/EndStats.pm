@@ -10,7 +10,7 @@ my %excluded;
 
 our %opts = (
     verbose      => 0,
-    sort         => 'time',
+    sort         => 'lines',
     _quiet       => 0,
 );
 
