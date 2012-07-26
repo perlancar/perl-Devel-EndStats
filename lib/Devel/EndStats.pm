@@ -154,6 +154,8 @@ END {
                 $sortsub = sub {$inc_info{$b}{$s} <=> $inc_info{$a}{$s}};
             } elsif ($s eq 'order') {
                 $sortsub = sub {($inc_info{$a}{$s}||0) <=> ($inc_info{$b}{$s}||0)};
+            } elsif ($s eq 'file') {
+                $sortsub = sub {$a cmp $b};
             } else {
                 $s = 'caller';
                 $sortsub = sub {$inc_info{$a}{$s} cmp $inc_info{$b}{$s}};
@@ -253,9 +255,9 @@ statistics (like per-module statistics). Default is 0.
 
 =item * sort => STR (default 'time')
 
-Set how to sort the list of loaded modules ('time' = by load time, 'caller' = by
-first caller's package, 'order' = by order of loading, 'lines' = by number of
-lines). Only relevant when 'verbose' is on.
+Set how to sort the list of loaded modules ('file' = by file, 'time' = by load
+time, 'caller' = by first caller's package, 'order' = by order of loading,
+'lines' = by number of lines). Only relevant when 'verbose' is on.
 
 =back
 
