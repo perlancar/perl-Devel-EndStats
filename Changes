@@ -1,6 +1,14 @@
 Revision history for Devel-EndStats
 
-0.05    2011-02-16
+0.06    2012-07-26 (SHARYANTO)
+
+        - Add caller, load timing (still inclusive though), and load order
+          information.
+
+        - Allow sorting list of modules using the 'sort' option.
+
+
+0.05    2011-02-16 (SHARYANTO)
 
         Use Time::HiRes for more precision.
 
@@ -11,25 +19,25 @@ Revision history for Devel-EndStats
 	Some formatting tweaks.
 
 
-0.04    2010-08-26
+0.04    2010-08-26 (SHARYANTO)
 
         Some doc work: sample output, formatting, wording.
 
 
-0.03    2010-08-04
+0.03    2010-08-04 (SHARYANTO)
 
         Change: print stats to STDERR instead of STDOUT.
 
         Fix failing tests.
 
 
-0.02    2010-07-28
+0.02    2010-07-28 (SHARYANTO)
 
         Require Perl 5.10.
 
         Add options: verbose, exclude_endstats_modules.
 
 
-0.01    2010-07-28
+0.01    2010-07-28 (SHARYANTO)
 
         First release.
