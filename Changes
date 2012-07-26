@@ -1,5 +1,10 @@
 Revision history for Devel-EndStats
 
+0.07    2012-07-26 (SHARYANTO)
+
+        - Bug: don't increase order unless requiring a new file.
+
+
 0.06    2012-07-26 (SHARYANTO)
 
         - Add caller, load timing (still inclusive though), and load order
