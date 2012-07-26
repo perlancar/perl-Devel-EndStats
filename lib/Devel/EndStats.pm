@@ -13,7 +13,8 @@ our %opts = (
     _quiet       => 0,
 );
 
-sub handler {
+# not yet
+sub _inc_handler {
     my ($coderef, $filename) = @_;
     my $load = 1;
 
@@ -41,7 +42,7 @@ sub import {
         }
     }
     $opts{$_} = $args{$_} for keys %args;
-    #unshift @INC, \&handler;
+    #unshift @INC, \&_inc_handler;
     @start_time = gettimeofday();
 }
 
@@ -122,8 +123,6 @@ END {
 
 1;
 # ABSTRACT: Show various statistics at the end of program run
-
-=for Pod::Coverage handler
 
 =head1 SYNOPSIS
 
