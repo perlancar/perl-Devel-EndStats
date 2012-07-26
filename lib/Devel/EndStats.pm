@@ -154,7 +154,8 @@ END {
                 $sortsub = sub {$inc_info{$b}{$s} <=> $inc_info{$a}{$s}};
             } elsif ($s eq 'order') {
                 $sortsub = sub {($inc_info{$a}{$s}||0) <=> ($inc_info{$b}{$s}||0)};
-            } else { # caller
+            } else {
+                $s = 'caller';
                 $sortsub = sub {$inc_info{$a}{$s} cmp $inc_info{$b}{$s}};
             }
             for my $r (sort $sortsub keys %inc_info) {
