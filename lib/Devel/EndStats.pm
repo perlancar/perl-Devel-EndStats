@@ -10,6 +10,7 @@ my %excluded;
 
 our %opts = (
     verbose      => 0,
+    sort         => 'time',
     _quiet       => 0,
 );
 
@@ -33,6 +34,10 @@ sub _inc_handler {
 }
 
 my $start_time;
+my %inc_info;
+my $order;
+my $req_level = -1;
+my @req_times;
 sub import {
     my ($class, %args) = @_;
     $opts{verbose} = $ENV{VERBOSE} if defined($ENV{VERBOSE});
@@ -43,7 +48,37 @@ sub import {
     }
     $opts{$_} = $args{$_} for keys %args;
     #unshift @INC, \&_inc_handler;
-    $start_time = [gettimeofday()];
+    *CORE::GLOBAL::require = sub {
+        my ($arg) = @_;
+        $req_level++;
+
+        $inc_info{$arg}         ||= {
+            order  => ++$order,
+            caller => (caller(0))[0],
+            time   => 0,
+        };
+
+        my $st = [gettimeofday];
+        my $res;
+        if (wantarray) { $res = [CORE::require $arg] } else { $res = CORE::require $arg }
+        my $iv = tv_interval($st);
+
+        # still can't make exclusive time work
+        #$req_times[$req_level] += $iv;
+        #my $iv_inner = 0;
+        #for ($req_level+1 .. @req_times-1) { $iv_inner += $req_times[$_] }
+        #$inc_info{$arg}{time} += $req_times[$req_level] - $iv_inner;
+        #splice @req_times, $req_level+1;
+        #$req_times[$req_level] = 0;
+
+        # inclusive time
+        $inc_info{$arg}{time} = $iv;
+
+        $req_level--;
+        if (wantarray) { return @$res } else { return $res }
+    };
+
+    $start_time = [gettimeofday];
 }
 
 my $begin_success;
@@ -68,6 +103,10 @@ my $begin_success;
             "Exporter.pm",
             "Time/HiRes.pm",
             "vars.pm",
+
+            # ?
+            "subs.pm",
+            "overload.pm",
         ) {
             $excluded{$_}++;
         }
@@ -84,30 +123,46 @@ END {
 
     if ($begin_success) {
 
-        $stats .= sprintf "# Program runtime duration: %.3fs\n", $secs;
+        $stats .= sprintf "# Program runtime duration: %.6fs\n", $secs;
 
         my $files = 0;
         my $lines = 0;
-        my %lines;
         local *F;
         for my $r (keys %INC) {
             next if $excluded{$r};
             $files++;
-            $lines{$r} = 0;
             next unless $INC{$r}; # undefined in some cases
             open F, $INC{$r} or do {
                 warn "Devel::EndStats: Can't open $INC{$r}, skipped\n";
                 next;
             };
-            while (<F>) { $lines++; $lines{$r}++ }
+            my $flines = 0;
+            while (<F>) { $lines++; $flines++ }
+            $inc_info{$r}{lines} = $flines;
         }
         $stats .= sprintf "# Total number of required files loaded: %d\n",
             $files;
         $stats .= sprintf "# Total number of required lines loaded: %d\n",
             $lines;
+
         if ($opts{verbose}) {
-            for my $r (sort {$lines{$b} <=> $lines{$a}} keys %lines) {
-                $stats .= sprintf "#   Lines from %s: %d\n", $r, $lines{$r};
+            my $s = $opts{sort};
+            my $sortsub;
+            if ($s eq 'lines') {
+                $sortsub = sub {$inc_info{$b}{$s} <=> $inc_info{$a}{$s}};
+            } elsif ($s eq 'time') {
+                $sortsub = sub {$inc_info{$b}{$s} <=> $inc_info{$a}{$s}};
+            } elsif ($s eq 'order') {
+                $sortsub = sub {($inc_info{$a}{$s}||0) <=> ($inc_info{$b}{$s}||0)};
+            } else { # caller
+                $sortsub = sub {$inc_info{$a}{$s} cmp $inc_info{$b}{$s}};
+            }
+            for my $r (sort $sortsub keys %inc_info) {
+                next unless $inc_info{$r}{lines};
+                $inc_info{$r}{time} ||= 0;
+                $stats .= sprintf "#   #%3d  %5d lines  %.6fs(%3d%%)  %s (loaded by %s)\n",
+                     $inc_info{$r}{order}, $inc_info{$r}{lines}, $inc_info{$r}{time}, $secs ? $inc_info{$r}{time}/$secs*100 : 0,
+                         $r, $inc_info{$r}{caller};
             }
         }
 
@@ -145,11 +200,11 @@ END {
  # Program runtime duration: 0.055s
  # Total number of required files loaded: 132
  # Total number of required lines loaded: 48772
- #   Lines from Class/MOP/Class.pm: 1733
- #   Lines from overload.pm: 1499
- #   Lines from Moose/Util/TypeConstraints.pm: 1390
- #   Lines from File/Find.pm: 1349
- #   Lines from Data/Dumper.pm: 1306
+ #   #  1   1747 lines  0.023489s( 43%)  Log/Any/App.pm (loaded by main)
+ #   # 52   1106 lines  0.015112s( 28%)  Log/Log4perl/Logger.pm (loaded by Log::Log4perl)
+ #   # 17    190 lines  0.011983s( 22%)  Log/Any/Adapter.pm (loaded by Log::Any::App)
+ #   # 18    152 lines  0.011679s( 21%)  Log/Any/Manager.pm (loaded by Log::Any::Adapter)
+ #   #  5    981 lines  0.007299s( 13%)  File/Path.pm (loaded by Log::Any::App)
  ...
  # END stats
 
@@ -195,6 +250,12 @@ or via the DEVELENDSTATS_OPTS environment variable:
 Can also be set via VERBOSE environment variable. If set to true, display more
 statistics (like per-module statistics). Default is 0.
 
+=item * sort => STR (default 'time')
+
+Set how to sort the list of loaded modules ('time' = by load time, 'caller' = by
+first caller's package, 'order' = by order of loading, 'lines' = by number of
+lines). Only relevant when 'verbose' is on.
+
 =back
 
 
@@ -215,9 +276,9 @@ Sure, if it's useful. As they say, (comments|patches) are welcome.
 
 =head1 TODO
 
-* Stat: memory usage.
+* Exclusive instead of inclusive timing for each require.
 
-* Time each require.
+* Stat: memory usage.
 
 * Stat: system/user time.
 
