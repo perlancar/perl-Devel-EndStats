@@ -133,7 +133,7 @@ END {
         for my $r (keys %INC) {
             next if $excluded{$r};
             $files++;
-            next unless $INC{$r}; # undefined in some cases
+            next unless $INC{$r}; # skip modules that failed to be require()-ed
             open F, $INC{$r} or do {
                 warn "Devel::EndStats: Can't open $INC{$r}, skipped\n";
                 next;
