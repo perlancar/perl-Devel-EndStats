@@ -1,5 +1,11 @@
 Revision history for Devel-EndStats
 
+0.09    2012-10-04 (SHARYANTO)
+
+        No functional changes. Fix a typo, avoid perl undef warning, and add a
+        helpful warning message when Devel::EndStats is loaded late.
+
+
 0.08    2012-07-27 (SHARYANTO)
 
         No functional changes
