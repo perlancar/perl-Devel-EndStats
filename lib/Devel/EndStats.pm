@@ -150,19 +150,27 @@ END {
         if ($opts{verbose}) {
             my $s = $opts{sort};
             my $sortsub;
-            if ($s eq 'lines') {
+            my $reverse;
+            if ($s =~ /^(-?)l(?:ines)?/) {
+                $reverse = $1;
                 $sortsub = sub {($inc_info{$b}{$s}||0) <=> ($inc_info{$a}{$s}||0)};
-            } elsif ($s eq 'time') {
+            } elsif ($s =~ /^(-)t(?:ime)?/) {
+                $reverse = $1;
                 $sortsub = sub {$inc_info{$b}{$s} <=> $inc_info{$a}{$s}};
-            } elsif ($s eq 'order') {
+            } elsif ($s =~ /^(-?)o(?:rder)?/) {
+                $reverse = $1;
                 $sortsub = sub {($inc_info{$a}{$s}||0) <=> ($inc_info{$b}{$s}||0)};
-            } elsif ($s eq 'file') {
+            } elsif ($s =~ /^(-?)f(?:ile)?/) {
+                $reverse = $1;
                 $sortsub = sub {$a cmp $b};
             } else {
-                $s = 'caller';
+                # sort by caller;
+                $reverse = $s =~ /-/;
                 $sortsub = sub {$inc_info{$a}{$s} cmp $inc_info{$b}{$s}};
             }
-            for my $r (sort $sortsub keys %inc_info) {
+            my @rr = sort $sortsub keys %inc_info;
+            @rr = reverse @rr if $reverse;
+            for my $r (@rr) {
                 next unless $inc_info{$r}{lines};
                 $inc_info{$r}{time} ||= 0;
                 $stats .= sprintf "#   #%3d  %5d lines  %7.3fms(%3d%%)  %s (loaded by %s)\n",
