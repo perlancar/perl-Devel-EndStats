@@ -178,7 +178,7 @@ END {
                 $inc_info{$r}{time} ||= 0;
                 $stats .= sprintf "#   #%3d  %5d lines  %7.3fms(%3d%%)  %s (loaded by %s)\n",
                      $inc_info{$r}{order}, $inc_info{$r}{lines}, $inc_info{$r}{time}*1000, $secs ? $inc_info{$r}{time}/$secs*100 : 0,
-                         $r, $inc_info{$r}{caller};
+                         $r, ($inc_info{$r}{caller} // "?");
             }
         }
 
