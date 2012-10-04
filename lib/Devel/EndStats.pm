@@ -239,7 +239,7 @@ Devel::EndStats should be loaded before other modules.
 Some options are accepted. They can be passed via the B<use> statement:
 
  # from the command line
- % pZerl -MDevel::EndStats=verbose,1 script.pl
+ % perl -MDevel::EndStats=verbose,1 script.pl
 
  # from script
  use Devel::EndStats verbose=>1;
