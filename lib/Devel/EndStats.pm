@@ -40,6 +40,9 @@ my $req_level = -1;
 my @req_times;
 sub import {
     my ($class, %args) = @_;
+    warn "There are already a bunch of modules loaded. For better result, ".
+        "it is recommended that you load ".__PACKAGE__." before others.\n"
+            if keys(%INC) >= 5;
     $opts{verbose} = $ENV{VERBOSE} if defined($ENV{VERBOSE});
     if ($ENV{DEVELENDSTATS_OPTS}) {
         while ($ENV{DEVELENDSTATS_OPTS} =~ /(\w+)=(\S+)/g) {
