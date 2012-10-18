@@ -1,5 +1,11 @@
 Revision history for Devel-EndStats
 
+0.10    2012-10-18 (SHARYANTO)
+
+        No functional changes. Tweak warning message and avoid perl undef
+        warning.
+
+
 0.09    2012-10-04 (SHARYANTO)
 
         No functional changes. Fix a typo, avoid perl undef warning, and add a
