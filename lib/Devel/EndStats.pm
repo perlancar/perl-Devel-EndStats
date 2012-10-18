@@ -6,7 +6,28 @@ use Time::HiRes qw(gettimeofday tv_interval);
 
 # VERSION
 
-my %excluded;
+# exclude modules which we use ourselves
+my %excluded = map {$_=>1} (
+    "strict.pm",
+    "Devel/EndStats.pm",
+    "warnings.pm",
+    "warnings/register.pm",
+
+    # from Time::HiRes
+    "AutoLoader.pm",
+    "Config_git.pl",
+    "Config_heavy.pl",
+    "Config.pm",
+    "DynaLoader.pm",
+    "Exporter/Heavy.pm",
+    "Exporter.pm",
+    "Time/HiRes.pm",
+    "vars.pm",
+
+    # ?
+    "subs.pm",
+    "overload.pm",
+);
 
 our %opts = (
     verbose      => 0,
@@ -40,9 +61,7 @@ my $req_level = -1;
 my @req_times;
 sub import {
     my ($class, %args) = @_;
-    warn "There are already a bunch of modules loaded. For better results, ".
-        "it is recommended that you load ".__PACKAGE__." before others.\n"
-            if keys(%INC) >= 5;
+
     $opts{verbose} = $ENV{VERBOSE} if defined($ENV{VERBOSE});
     if ($ENV{DEVELENDSTATS_OPTS}) {
         while ($ENV{DEVELENDSTATS_OPTS} =~ /(\w+)=(\S+)/g) {
@@ -50,6 +69,17 @@ sub import {
         }
     }
     $opts{$_} = $args{$_} for keys %args;
+
+    my @loaded = grep {!$excluded{$_}} keys(%INC);
+    warn join(
+        "",
+        "There are already a bunch of modules loaded",
+        (" (".join(", ", @loaded).")") x !!$opts{verbose},
+        " before Devel::EndStats has a chance to install its require hook. ",
+        "For better results, it is recommended that you load ",
+        __PACKAGE__, " before others.\n",
+    ) if @loaded > 5;
+
     #unshift @INC, \&_inc_handler;
     *CORE::GLOBAL::require = sub {
         my ($arg) = @_;
@@ -91,30 +121,6 @@ my $begin_success;
     # shut up warning about too late to run INIT block
     no warnings;
     INIT {
-        # exclude modules which we use ourselves
-        for (
-            "strict.pm",
-            "Devel/EndStats.pm",
-            "warnings.pm",
-            "warnings/register.pm",
-
-            # from Time::HiRes
-            "AutoLoader.pm",
-            "Config_git.pl",
-            "Config_heavy.pl",
-            "Config.pm",
-            "DynaLoader.pm",
-            "Exporter/Heavy.pm",
-            "Exporter.pm",
-            "Time/HiRes.pm",
-            "vars.pm",
-
-            # ?
-            "subs.pm",
-            "overload.pm",
-        ) {
-            $excluded{$_}++;
-        }
         $begin_success++;
     }
 }
@@ -176,8 +182,8 @@ END {
             for my $r (@rr) {
                 next unless $inc_info{$r}{lines};
                 $inc_info{$r}{time} ||= 0;
-                $stats .= sprintf "#   #%3d  %5d lines  %7.3fms(%3d%%)  %s (loaded by %s)\n",
-                     $inc_info{$r}{order}, $inc_info{$r}{lines}, $inc_info{$r}{time}*1000, $secs ? $inc_info{$r}{time}/$secs*100 : 0,
+                $stats .= sprintf "#   #%3s  %5d lines  %7.3fms(%3d%%)  %s (loaded by %s)\n",
+                     $inc_info{$r}{order} // '?', $inc_info{$r}{lines}, $inc_info{$r}{time}*1000, $secs ? $inc_info{$r}{time}/$secs*100 : 0,
                          $r, ($inc_info{$r}{caller} // "?");
             }
         }
