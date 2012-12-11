@@ -33,6 +33,7 @@ our %opts = (
     verbose      => 0,
     sort         => 'lines',
     _quiet       => 0,
+    force        => 0,
 );
 
 # not yet
@@ -129,11 +130,12 @@ our $stats;
 END {
     my $secs = $start_time ? tv_interval($start_time) : (time()-$^T);
 
-    $stats  = "\n";
-    $stats .= "# BEGIN stats from Devel::EndStats\n";
+    $stats = "";
 
-    if ($begin_success) {
+    if ($begin_success || $opts{force}) {
 
+        $stats .= "\n";
+        $stats .= "# Start stats from Devel::EndStats:\n";
         $stats .= sprintf "# Program runtime duration: %.3fs\n", $secs;
 
         my $files = 0;
@@ -188,13 +190,10 @@ END {
             }
         }
 
-    } else {
-
-        $stats .= "# BEGIN phase didn't succeed?\n";
+        $stats .= "# End of stats\n";
 
     }
 
-    $stats .= "# END stats\n";
     print STDERR $stats unless $opts{_quiet};
 }
 
@@ -267,16 +266,21 @@ or via the DEVELENDSTATS_OPTS environment variable:
 
 =over 4
 
-=item * verbose => BOOL
+=item * verbose => BOOL (default: 0)
 
 Can also be set via VERBOSE environment variable. If set to true, display more
-statistics (like per-module statistics). Default is 0.
+statistics (like per-module statistics).
 
-=item * sort => STR (default 'time')
+=item * sort => STR (default: 'time')
 
 Set how to sort the list of loaded modules ('file' = by file, 'time' = by load
 time, 'caller' = by first caller's package, 'order' = by order of loading,
 'lines' = by number of lines). Only relevant when 'verbose' is on.
+
+=item * force => BOOL (default: 0)
+
+By default, if BEGIN phase did not succeed, stats will not be shown. This option
+forces displaying the stats.
 
 =back
 
