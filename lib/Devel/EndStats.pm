@@ -198,7 +198,7 @@ END {
 }
 
 1;
-# ABSTRACT: display run time and dependencies after running code
+# ABSTRACT: Display run time and dependencies after running code
 
 =head1 SYNOPSIS
 
@@ -303,9 +303,8 @@ Sure, if it's useful. As they say, (comments|patches) are welcome.
 =head1 SEE ALSO
 
 There are many modules on CPAN that can be used to generate dependency
-information for your code.
-Neil Bowers has written a L<review|http://neilb.org/reviews/dependencies.html>
-that covers most of them.
+information for your code. Neil Bowers has written a
+L<review|http://neilb.org/reviews/dependencies.html> that covers most of them.
 
 =head1 TODO
 
