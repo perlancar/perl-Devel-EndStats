@@ -1,5 +1,10 @@
 Revision history for Devel-EndStats
 
+0.12    2013-07-17 (SHARYANTO)
+
+        No functional changes. Minor documentation improvements (thanks Neil).
+
+
 0.11    2012-12-11 (SHARYANTO)
 
         - Add option 'force'.
