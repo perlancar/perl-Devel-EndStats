@@ -39,13 +39,6 @@ my %excluded_hide_core = map {$_=>1} (
     "version/vxs.pm",
 );
 
-# if we use Devel::SizeMe
-my %excluded_show_memsize = map {$_=>1} (
-    "XSLoader.pm",
-    "Devel/SizeMe.pm",
-    "Devel/SizeMe/Core.pm",
-);
-
 our %opts = (
     verbose      => 0,
     sort         => 'lines',
@@ -73,6 +66,15 @@ sub _inc_handler {
     #return (undef, sub {return 0});
 
     #return (\*FH, );
+}
+
+sub _get_memsize {
+    # stolen from Memory::Usage
+    sysopen(my $fh, "/proc/$$/statm", 0) or die $!;
+    sysread($fh, my $line, 255) or die $!;
+    #my ($vsz, $rss, $share, $text, $crap, $data, $crap2) = split(/\s+/, $line,  7);
+    my ($vsz) = split(/\s+/, $line,  7);
+    $vsz;
 }
 
 my $start_time;
@@ -107,11 +109,6 @@ sub import {
         $excluded{$_} = 1 for keys %excluded_hide_core;
     }
 
-    if ($opts{show_memsize}) {
-        require Devel::SizeMe;
-        $excluded{$_} = 1 for keys %excluded_show_memsize;
-    }
-
     #unshift @INC, \&_inc_handler;
     *CORE::GLOBAL::require = sub {
         my ($arg) = @_;
@@ -125,12 +122,12 @@ sub import {
             time   => 0,
         };
 
-        my $memsize1 = Devel::SizeMe::perl_size() if $opts{show_memsize};
+        my $memsize1 = _get_memsize() if $opts{show_memsize};
         my $st = [gettimeofday];
         my $res;
         if (wantarray) { $res = [CORE::require $arg] } else { $res = CORE::require $arg }
         my $iv = tv_interval($st);
-        my $memsize2 = Devel::SizeMe::perl_size() if $opts{show_memsize};
+        my $memsize2 = _get_memsize() if $opts{show_memsize};
 
         # still can't make exclusive time work
         #$req_times[$req_level] += $iv;
@@ -219,29 +216,34 @@ END {
         }
 
         if ($opts{verbose}) {
-            my $s = $opts{sort};
+            my $s = $opts{sort} // 'caller';
             my $sortsub;
             my $reverse;
             if ($s =~ /^(-?)l(?:ines)?/) {
                 $reverse = $1;
-                $sortsub = sub {($inc_info{$b}{$s}||0) <=> ($inc_info{$a}{$s}||0)};
+                $sortsub = sub {($inc_info{$a}{lines}||0) <=> ($inc_info{$b}{lines}||0)};
             } elsif ($s =~ /^(-)t(?:ime)?/) {
                 $reverse = $1;
-                $sortsub = sub {$inc_info{$b}{$s} <=> $inc_info{$a}{$s}};
+                $sortsub = sub {$inc_info{$b}{time} <=> $inc_info{$b}{time}};
             } elsif ($s =~ /^(-?)o(?:rder)?/) {
                 $reverse = $1;
-                $sortsub = sub {($inc_info{$a}{$s}||0) <=> ($inc_info{$b}{$s}||0)};
+                $sortsub = sub {($inc_info{$a}{seq}||0) <=> ($inc_info{$b}{seq}||0)};
             } elsif ($s =~ /^(-?)f(?:ile)?/) {
                 $reverse = $1;
                 $sortsub = sub {$a cmp $b};
-            } else {
+            } elsif ($s =~ /^(-?)(?:m|mem|memsize)/) {
+                $reverse = $1;
+                $sortsub = sub {($inc_info{$a}{memsize}||0) <=> ($inc_info{$b}{memsize}||0)};
+            } elsif ($s =~ /^(-?)(caller)/) {
                 # sort by caller;
                 $reverse = $s =~ /-/;
                 $sortsub = sub {$inc_info{$a}{$s} cmp $inc_info{$b}{$s}};
+            } else {
+                die "Unknown sort value";
             }
             my @rr = sort $sortsub keys %inc_info;
             @rr = reverse @rr if $reverse;
-            $stats .= "# Seq  Lines  Load Time".($sm ? "  MemSize":"")."      Module\n";
+            $stats .= "# Seq  Lines  Load Time       ".($sm ? "  MemSize":"")."  Module\n";
             for my $r (@rr) {
                 my $ii = $inc_info{$r};
                 next unless $ii->{lines};
@@ -250,10 +252,10 @@ END {
                 $ii->{time} ||= 0;
                 $ii->{memsize} ||= 0;
                 $stats .= sprintf(
-                    "# %3s  %5d  %7.3fms(%3d%%)".($sm ? "  %6fK" : "")."  %s (loaded by %s)\n",
+                    "# %3s  %5d  %8.3fms(%3d%%)  ".($sm ? "%6.0fK" : "%s")."  %s (loaded by %s)\n",
                     $ii->{order} || '?', $ii->{lines}, $ii->{time}*1000, $secs ? $ii->{time}/$secs*100 : 0,
+                    ($sm ? $ii->{memsize} : ""),
                     $r,
-                    ($ii->{memsize}/1024) x !!$sm,
                     ($ii->{caller} || "?"),
                 );
             }
@@ -360,6 +362,13 @@ Whether to hide core modules while listing modules in C<verbose> mode.
 
 Whether to hide non-core modules while listing modules in C<verbose> mode.
 
+=item * show_memsize => BOOL (default: 0)
+
+Whether to show memory usage information. Currently this is done by probing
+C</proc/$$/statm> because some other memory querying modules are unusable (e.g.
+L<Devel::SizeMe> currently segfaults on my system, C<Devel::InterpreterSize> is
+too heavy).
+
 =back
 
 
@@ -384,11 +393,12 @@ information for your code. Neil Bowers has written a
 L<review|http://neilb.org/reviews/dependencies.html> that covers most of them.
 
 
+=head1 KNOWN ISSUES
+
+* Timing and memory usage is inclusive instead of exclusive.
+
+
 =head1 TODO
-
-* Exclusive instead of inclusive timing for each require.
-
-* Stat: memory usage.
 
 * Stat: system/user time.
 
