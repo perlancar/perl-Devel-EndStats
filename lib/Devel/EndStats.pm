@@ -39,6 +39,13 @@ my %excluded_hide_core = map {$_=>1} (
     "version/vxs.pm",
 );
 
+# if we use Devel::SizeMe
+my %excluded_show_memsize = map {$_=>1} (
+    "XSLoader.pm",
+    "Devel/SizeMe.pm",
+    "Devel/SizeMe/Core.pm",
+);
+
 our %opts = (
     verbose      => 0,
     sort         => 'lines',
@@ -46,6 +53,7 @@ our %opts = (
     force        => 0,
     hide_core    => 0,
     hide_noncore => 0,
+    show_memsize => 0,
 );
 
 # not yet
@@ -68,6 +76,7 @@ sub _inc_handler {
 }
 
 my $start_time;
+my $memsize;
 my %inc_info;
 my $order;
 my $req_level = -1;
@@ -93,6 +102,16 @@ sub import {
         __PACKAGE__, " before others.\n",
     ) if @loaded > 5;
 
+    if ($opts{hide_core} || $opts{hide_noncore}) {
+        require Module::CoreList;
+        $excluded{$_} = 1 for keys %excluded_hide_core;
+    }
+
+    if ($opts{show_memsize}) {
+        require Devel::SizeMe;
+        $excluded{$_} = 1 for keys %excluded_show_memsize;
+    }
+
     #unshift @INC, \&_inc_handler;
     *CORE::GLOBAL::require = sub {
         my ($arg) = @_;
@@ -106,10 +125,12 @@ sub import {
             time   => 0,
         };
 
+        my $memsize1 = Devel::SizeMe::perl_size() if $opts{show_memsize};
         my $st = [gettimeofday];
         my $res;
         if (wantarray) { $res = [CORE::require $arg] } else { $res = CORE::require $arg }
         my $iv = tv_interval($st);
+        my $memsize2 = Devel::SizeMe::perl_size() if $opts{show_memsize};
 
         # still can't make exclusive time work
         #$req_times[$req_level] += $iv;
@@ -122,14 +143,13 @@ sub import {
         # inclusive time
         $inc_info{$arg}{time} = $iv;
 
+        # inclusive memory usage
+        $inc_info{$arg}{memsize} = $memsize2 - $memsize1
+            if $opts{show_memsize};
+
         $req_level--;
         if (wantarray) { return @$res } else { return $res }
     };
-
-    if ($opts{hide_core} || $opts{hide_noncore}) {
-        require Module::CoreList;
-        $excluded{$_} = 1 for keys %excluded_hide_core;
-    }
 
     $start_time = [gettimeofday];
 }
@@ -152,6 +172,7 @@ END {
     if ($begin_success || $opts{force}) {
 
         my $hc = $opts{hide_core} || $opts{hide_noncore};
+        my $sm = $opts{show_memsize};
 
         $stats .= "\n";
         $stats .= "# Start stats from Devel::EndStats:\n";
@@ -220,16 +241,21 @@ END {
             }
             my @rr = sort $sortsub keys %inc_info;
             @rr = reverse @rr if $reverse;
-            $stats .= "# Seq  Lines  Load Time        Module\n";
+            $stats .= "# Seq  Lines  Load Time".($sm ? "  MemSize":"")."      Module\n";
             for my $r (@rr) {
                 my $ii = $inc_info{$r};
                 next unless $ii->{lines};
                 next if $opts{hide_core} && defined($ii->{is_core}) && $ii->{is_core};
                 next if $opts{hide_noncore} && defined($ii->{is_core}) && !$ii->{is_core};
                 $ii->{time} ||= 0;
-                $stats .= sprintf "# %3s  %5d  %7.3fms(%3d%%)  %s (loaded by %s)\n",
-                     $ii->{order} || '?', $ii->{lines}, $ii->{time}*1000, $secs ? $ii->{time}/$secs*100 : 0,
-                         $r, ($ii->{caller} || "?");
+                $ii->{memsize} ||= 0;
+                $stats .= sprintf(
+                    "# %3s  %5d  %7.3fms(%3d%%)".($sm ? "  %6fK" : "")."  %s (loaded by %s)\n",
+                    $ii->{order} || '?', $ii->{lines}, $ii->{time}*1000, $secs ? $ii->{time}/$secs*100 : 0,
+                    $r,
+                    ($ii->{memsize}/1024) x !!$sm,
+                    ($ii->{caller} || "?"),
+                );
             }
         }
 
