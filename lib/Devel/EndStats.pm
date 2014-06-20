@@ -41,7 +41,7 @@ my %excluded_hide_core = map {$_=>1} (
 
 our %opts = (
     verbose      => 0,
-    sort         => 'lines',
+    sort         => '-time',
     _quiet       => 0,
     force        => 0,
     hide_core    => 0,
@@ -224,7 +224,7 @@ END {
                 $sortsub = sub {($inc_info{$a}{lines}||0) <=> ($inc_info{$b}{lines}||0)};
             } elsif ($s =~ /^(-)t(?:ime)?/) {
                 $reverse = $1;
-                $sortsub = sub {$inc_info{$b}{time} <=> $inc_info{$b}{time}};
+                $sortsub = sub {($inc_info{$a}{time}||0) <=> ($inc_info{$b}{time}||0)};
             } elsif ($s =~ /^(-?)o(?:rder)?/) {
                 $reverse = $1;
                 $sortsub = sub {($inc_info{$a}{seq}||0) <=> ($inc_info{$b}{seq}||0)};
@@ -343,7 +343,7 @@ or via the DEVELENDSTATS_OPTS environment variable:
 Can also be set via VERBOSE environment variable. If set to true, display more
 statistics (like per-module statistics).
 
-=item * sort => STR (default: 'time')
+=item * sort => STR (default: '-time')
 
 Set how to sort the list of loaded modules ('file' = by file, 'time' = by load
 time, 'caller' = by first caller's package, 'order' = by order of loading,
