@@ -112,7 +112,7 @@ sub import {
     #unshift @INC, \&_inc_handler;
     *CORE::GLOBAL::require = sub {
         my ($arg) = @_;
-        return 0 if $INC{$arg};
+        return 1 if $INC{$arg};
 
         $req_level++;
 
