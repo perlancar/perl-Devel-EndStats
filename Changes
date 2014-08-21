@@ -1,5 +1,16 @@
 Revision history for Devel-EndStats
 
+0.15    2014-08-21 (SHARYANTO)
+
+        [BUG FIXES]
+
+        - Sorting fixes.
+
+        - Return 1 if module already loaded (listed in %INC), not 0. This caused
+          problem with code like: 'eval "require $mod" or die ...' (even though
+          it is advised that one does 'eval "require $mod; 1" or die ...').
+
+
 0.14    2014-05-18 (SHARYANTO)
 
         - Add option: show_memsize.
