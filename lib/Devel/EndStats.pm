@@ -223,7 +223,7 @@ END {
             if ($s =~ /^(-?)l(?:ines)?/) {
                 $reverse = $1;
                 $sortsub = sub {($inc_info{$a}{lines}||0) <=> ($inc_info{$b}{lines}||0)};
-            } elsif ($s =~ /^(-)t(?:ime)?/) {
+            } elsif ($s =~ /^(-?)t(?:ime)?/) {
                 $reverse = $1;
                 $sortsub = sub {($inc_info{$a}{time}||0) <=> ($inc_info{$b}{time}||0)};
             } elsif ($s =~ /^(-?)o(?:rder)?/) {
