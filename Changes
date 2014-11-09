@@ -1,5 +1,12 @@
 Revision history for Devel-EndStats
 
+0.17    2014-11-09 (PERLANCAR)
+
+	- No functional changes.
+
+	- Typo in checking 'time' sort order.
+
+
 0.16    2014-11-09 (PERLANCAR)
 
         - Don't show warning when encountering file '-e' in %INC (I encountered
