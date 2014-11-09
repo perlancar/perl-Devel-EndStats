@@ -1,5 +1,11 @@
 Revision history for Devel-EndStats
 
+0.16    2014-11-09 (PERLANCAR)
+
+        - Don't show warning when encountering file '-e' in %INC (I encountered
+          this when using Moo, where this pair shows up: 'main.pm' => '-e').
+
+
 0.15    2014-08-21 (SHARYANTO)
 
         [BUG FIXES]
