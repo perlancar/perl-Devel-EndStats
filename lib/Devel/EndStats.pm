@@ -186,6 +186,7 @@ END {
             next if $excluded{$r};
             $files++;
             next unless $INC{$r}; # skip modules that failed to be require()-ed
+            next if $INC{$r} eq '-e';
             open F, $INC{$r} or do {
                 warn "Devel::EndStats: Can't open $INC{$r}, skipped\n";
                 next;
