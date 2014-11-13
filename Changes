@@ -1,5 +1,13 @@
 Revision history for Devel-EndStats
 
+0.18    2014-11-13 (PERLANCAR)
+
+	- No functional changes.
+
+	- Avoid the use of defined-or operator because we still allow
+	  5.8/earlier perls.
+
+
 0.17    2014-11-09 (PERLANCAR)
 
 	- No functional changes.
