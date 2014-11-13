@@ -1,10 +1,11 @@
 package Devel::EndStats;
 
+# DATE
+# VERSION
+
 use strict;
 use warnings;
 use Time::HiRes qw(gettimeofday tv_interval);
-
-# VERSION
 
 # exclude modules which we use ourselves
 my %excluded = map {$_=>1} (
@@ -217,7 +218,7 @@ END {
         }
 
         if ($opts{verbose}) {
-            my $s = $opts{sort} // 'caller';
+            my $s = $opts{sort} || 'caller';
             my $sortsub;
             my $reverse;
             if ($s =~ /^(-?)l(?:ines)?/) {
