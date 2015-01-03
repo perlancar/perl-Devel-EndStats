@@ -399,21 +399,3 @@ L<review|http://neilb.org/reviews/dependencies.html> that covers most of them.
 
 * Timing and memory usage is inclusive instead of exclusive.
 
-
-=head1 TODO
-
-* Stat: system/user time.
-
-* Stat: number of open files (sockets).
-
-* Stat: number of child processes.
-
-* Stat: number of actual code lines (vs blanks, data, comment, POD)
-
-* Stat: number of XS vs PP modules.
-
-* Feature: remember last run's stats, compare with current run.
-
-=cut
-
-1;
