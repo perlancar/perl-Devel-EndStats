@@ -174,7 +174,7 @@ END {
 
         $stats .= "\n";
         $stats .= "# Start stats from Devel::EndStats:\n";
-        $stats .= sprintf "# Program runtime duration: %.3fs\n", $secs;
+        $stats .= sprintf "# Program runtime duration: %.3fms\n", $secs*1000;
 
         my $files = 0;
         my $lines = 0;
