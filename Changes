@@ -1,3 +1,24 @@
+0.210   2023-05-01  Released-By: PERLANCAR; Urgency: medium; Backward-Incompatible: yes
+
+        [INCOMPATIBLE CHANGES]
+
+        - We now do not hide any modules from being listed, to avoid being
+          deceptive by accident.
+
+        - We are now more minimalistic and avoid loading any module by default,
+          including 'strict', 'warnings', and 'Time::HiRes'. This means by
+          default time is measured using builtin time() which only has 1-second
+          precision. To enable subsecond precision, explicitly set 'time_hires'
+          option to true.
+
+        - Rename environment variable DEVELENDSTATS_OPTS to
+          PERL_DEVEL_ENDSTATS_OPTS.
+
+        [ENHANCEMENTS]
+
+        - Add option 'debug'.
+
+
 0.20    2015-03-26  Released-By: PERLANCAR
 
 	- [ux] Show program runtime in ms too.
@@ -127,4 +148,3 @@
 0.01    2010-07-28  Released-By: SHARYANTO
 
         - First release.
-

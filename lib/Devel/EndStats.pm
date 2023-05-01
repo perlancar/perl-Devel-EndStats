@@ -128,6 +128,14 @@ my $begin_success;
 
 our $stats;
 END {
+    if ($INC{"Dist/Zilla.pm"}) {
+        # there is no environment variable to mark when we are building, so we
+        # check this by the presence of Dist::Zilla in the loaded modules, which
+        # might be a false positive in some cases.
+        warn "We are building ourselves (Dist::Zilla is loaded), skipping displaying results\n" if $opts{debug};
+        return;
+    }
+
     my $secs = $start_time ?
         ($opts{time_hires} ? Time::HiRes::tv_interval($start_time) : time()-$start_time) :
         (time()-$^T);
